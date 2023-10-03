@@ -35,9 +35,9 @@
 
 ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref)
 {
-    if (ref.Path && ref.ID != 0)
+    if (ref.Path.length() > 0 && ref.ID != 0)
         ImFormatString(Buf, IM_COUNTOF(Buf), "'%s' (id 0x%08X)", ref.Path, ref.ID);
-    else if (ref.Path)
+    else if (ref.Path.length() > 0)
         ImFormatString(Buf, IM_COUNTOF(Buf), "'%s'", ref.Path);
     else
         ImFormatString(Buf, IM_COUNTOF(Buf), "0x%08X", ref.ID);
@@ -45,7 +45,7 @@ ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref)
 
 ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref, const ImGuiTestItemInfo& item)
 {
-    if (ref.Path && item.ID != 0)
+    if (ref.Path.length > 0 && item.ID != 0)
         ImFormatString(Buf, IM_COUNTOF(Buf), "'%s' (id 0x%08X)", ref.Path, item.ID);
     else if (ref.Path)
         ImFormatString(Buf, IM_COUNTOF(Buf), "'%s'", ref.Path);
@@ -533,16 +533,16 @@ void ImGuiTestContext::SetRef(ImGuiTestRef ref)
 {
     IMGUI_TEST_CONTEXT_REGISTER_DEPTH(this);
     if (ActiveFunc != ImGuiTestActiveFunc_GuiFunc)
-        LogDebug("SetRef '%s' 0x%08X", ref.Path ? ref.Path : "nullptr", ref.ID);
+        LogDebug("SetRef '%s' 0x%08X", ref.Path.length() > 0 ? ref.Path.c_str() : "nullptr", ref.ID);
 
-    if (ref.Path)
+    if (ref.Path.length() > 0)
     {
-        size_t len = strlen(ref.Path);
+        size_t len = ref.Path.length();
         IM_UNUSED(len); // Only used when IM_ASSERT enabled
         IM_ASSERT(len < IM_COUNTOF(RefStr) - 1);
 
-        strcpy(RefStr, ref.Path);
-        RefID = GetID(ref.Path, ImGuiTestRef());
+        strcpy(RefStr, ref.Path.c_str());
+        RefID = GetID(ref.Path.c_str(), ImGuiTestRef());
     }
     else
     {
@@ -562,10 +562,10 @@ void ImGuiTestContext::SetRef(ImGuiTestRef ref)
     ImGuiWindow* window = GetWindowByRef("");
 
     // (1) Try first element of ref path, it is most likely a window name and item lookup won't be necessary.
-    if (window == nullptr && ref.Path != nullptr)
+    if (window == NULL && ref.Path.length() > 0)
     {
         // "Window/SomeItem" -> search for "Window"
-        const char* name_begin = ref.Path;
+        const char* name_begin = ref.Path.c_str();
         while (*name_begin == '/') // Skip leading slashes
             name_begin++;
         const char* name_end = name_begin - 1;
@@ -645,7 +645,7 @@ ImGuiID ImGuiTestContext::GetID(ImGuiTestRef ref, ImGuiTestRef seed_ref)
     const char* FOCUSED_PREFIX = "//$FOCUSED";
     const size_t FOCUSED_PREFIX_LEN = 10;
 
-    const char* path = ref.Path ? ref.Path : "";
+    const char* path = ref.Path.c_str();
     if (strncmp(path, FOCUSED_PREFIX, FOCUSED_PREFIX_LEN) == 0)
         if (path[FOCUSED_PREFIX_LEN] == '/' || path[FOCUSED_PREFIX_LEN] == 0)
         {
@@ -676,7 +676,7 @@ ImGuiID ImGuiTestContext::GetID(ImGuiTestRef ref, ImGuiTestRef seed_ref)
         }
     }
 
-    return ImHashDecoratedPath(path, nullptr, seed_ref.Path ? GetID(seed_ref) : seed_ref.ID);
+    return ImHashDecoratedPath(path, NULL, seed_ref.Path.length() > 0  ? GetID(seed_ref) : seed_ref.ID);
 }
 
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
@@ -1003,12 +1003,12 @@ ImGuiTestItemInfo ImGuiTestContext::ItemInfo(ImGuiTestRef ref, ImGuiTestOpFlags 
 
     ImGuiID full_id = 0;
 
-    if (const char* p = ref.Path ? strstr(ref.Path, "**/") : nullptr)
+    if (const char* p = ref.Path.length() > 0 ? strstr(ref.Path.c_str(), "**/") : nullptr)
     {
         // Wildcard matching
         // FIXME-TESTS: Need to verify that this is not inhibited by a \, so \**/ should not pass, but \\**/ should :)
         // We could add a simple helpers that would iterate the strings, handling inhibitors, and let you check if a given characters is inhibited or not.
-        const char* wildcard_prefix_start = ref.Path;
+        const char* wildcard_prefix_start = ref.Path.c_str();
         const char* wildcard_prefix_end = p;
         const char* wildcard_suffix_start = wildcard_prefix_end + 3;
         full_id = ItemInfoHandleWildcardSearch(wildcard_prefix_start, wildcard_prefix_end, wildcard_suffix_start);
@@ -1027,7 +1027,7 @@ ImGuiTestItemInfo ImGuiTestContext::ItemInfo(ImGuiTestRef ref, ImGuiTestOpFlags 
     int extra_retries_for_appearing = 0;
     while (full_id && retries < max_retries)
     {
-        item = ImGuiTestEngine_FindItemInfo(Engine, full_id, ref.Path);
+        item = ImGuiTestEngine_FindItemInfo(Engine, full_id, ref.Path.c_str());
 
         // While a window is appearing it is likely to be resizing and items moving. Wait an extra frame for things to settle. (FIXME: Could use another source e.g. Hidden? AutoFitFramesX?)
         if (item && item->Window && item->Window->Appearing && extra_retries_for_appearing == 0)
@@ -1053,7 +1053,7 @@ ImGuiTestItemInfo ImGuiTestContext::ItemInfo(ImGuiTestRef ref, ImGuiTestOpFlags 
 ImGuiTestItemInfo ImGuiTestContext::ItemInfoOpenFullPath(ImGuiTestRef ref, ImGuiTestOpFlags flags)
 {
     // First query
-    bool can_open_full_path = (ref.Path != nullptr);
+    bool can_open_full_path = (ref.Path.length() > 0);
     ImGuiTestItemInfo item = ItemInfo(ref, (can_open_full_path ? ImGuiTestOpFlags_NoError : ImGuiTestOpFlags_None) | (flags & ImGuiTestOpFlags_NoError));
     if (item.ID != 0)
         return item;
@@ -1065,14 +1065,14 @@ ImGuiTestItemInfo ImGuiTestContext::ItemInfoOpenFullPath(ImGuiTestRef ref, ImGui
     // - Openables can be before the wildcard    "Node2/Node3/**/Button"
     // - Openables can be after the wildcard     "**/Node2/Node3/Lv4/Button"
     int opened_parents = 0;
-    for (const char* parent_end = strstr(ref.Path, "/"); parent_end != nullptr; parent_end = strstr(parent_end + 1, "/"))
+    for (const char* parent_end = strstr(ref.Path.c_str(), "/"); parent_end != NULL; parent_end = strstr(parent_end + 1, "/"))
     {
         // Skip "**/* sections
-        if (strncmp(ref.Path, "**/", parent_end - ref.Path) == 0)
+        if (strncmp(ref.Path.c_str(), "**/", parent_end - ref.Path.c_str()) == 0)
             continue;
 
         Str128 parent_id;
-        parent_id.set(ref.Path, parent_end);
+        parent_id.set(ref.Path.c_str(), parent_end);
         ImGuiTestItemInfo parent_item = ItemInfo(parent_id.c_str(), ImGuiTestOpFlags_NoError);
         if (parent_item.ID != 0)
         {
@@ -1140,9 +1140,9 @@ ImGuiTestItemInfo ImGuiTestContext::WindowInfo(ImGuiTestRef ref, ImGuiTestOpFlag
     if (ref.ID != 0)
     {
         LogDebug("WindowInfo: by id: 0x%08X", ref.ID);
-        IM_ASSERT(ref.Path == nullptr);
+        IM_ASSERT(ref.Path.length() == 0);
         ImGuiWindow* window = GetWindowByRef(ref);
-        if (window == nullptr)
+        if (window == NULL)
         {
             if ((flags & ImGuiTestOpFlags_NoError) == 0)
                 LogError("WindowInfo: cannot find window by ID!"); // FIXME: What if we want to query a not-yet-existing window by ID?
@@ -1152,15 +1152,15 @@ ImGuiTestItemInfo ImGuiTestContext::WindowInfo(ImGuiTestRef ref, ImGuiTestOpFlag
     }
 
     // Query by Path: this is where the meat of our work is.
-    LogDebug("WindowInfo: by path: '%s'", ref.Path ? ref.Path : "nullptr");
+    LogDebug("WindowInfo: by path: '%s'", ref.Path.length() > 0 ? ref.Path.c_str() : "nullptr");
     ImGuiWindow* window = nullptr;
     ImGuiID window_idstack_back = 0;
-    const char* current = ref.Path;
+    const char* current = ref.Path.c_str();
     while (*current || window == nullptr)
     {
         // Handle SetRef(), if any (this will also handle "//$FOCUSED" syntax)
         Str128 part_name;
-        if (window == nullptr && RefID != 0 && strncmp(ref.Path, "//", 2) != 0)
+        if (window == nullptr && RefID != 0 && strncmp(ref.Path.c_str(), "//", 2) != 0)
         {
             window = GetWindowByRef("");
             window_idstack_back = window ? window->ID : 0;
@@ -2519,7 +2519,7 @@ ImVec2  ImGuiTestContext::GetWindowTitlebarPoint(ImGuiTestRef window_ref)
     ImGuiWindow* window = GetWindowByRef(window_ref);
     if (window == nullptr)
     {
-        IM_ERRORF_NOHDR("Unable to locate ref window: '%s'", window_ref.Path);
+        IM_ERRORF_NOHDR("Unable to locate ref window: '%s'", window_ref.Path.c_str());
         return ImVec2();
     }
 
@@ -2904,7 +2904,7 @@ void    ImGuiTestContext::ItemAction(ImGuiTestAction action, ImGuiTestRef ref, I
     //    printf("");
 
     // FIXME-TESTS: Fix that stuff
-    const bool is_wildcard = ref.Path != nullptr && strstr(ref.Path, "**/") != 0;
+    const bool is_wildcard = ref.Path.length() > 0 && strstr(ref.Path.c_str(), "**/") != 0;
     if (is_wildcard)
     {
         // This is a fragile way to avoid some ambiguities, we're relying on expected action to further filter by status flags.
@@ -3553,7 +3553,7 @@ void    ImGuiTestContext::MenuAction(ImGuiTestAction action, ImGuiTestRef ref)
     ImGuiTestRefDesc desc(ref);
     LogDebug("MenuAction %s", desc.c_str());
 
-    IM_ASSERT(ref.Path != nullptr);
+    IM_ASSERT(ref.Path.c_str() != nullptr);
 
     // MenuAction() doesn't support **/ in most case it would be equivalent to opening all menus to "search".
     // [01] Works:
@@ -3569,14 +3569,14 @@ void    ImGuiTestContext::MenuAction(ImGuiTestAction action, ImGuiTestRef ref)
     //   MenuClick("**/New");
     // [05] Doesn't work: (unlikely to ever work)
     //   MenuClick("**/New");
-    if (strncmp(ref.Path, "**/", 3) == 0)
+    if (strncmp(ref.Path.c_str(), "**/", 3) == 0)
     {
         LogError("\"**/\" is not yet supported by MenuAction().");
         return;
     }
 
     int depth = 0;
-    const char* path = ref.Path;
+    const char* path = ref.Path.c_str();
     const char* path_end = path + strlen(path);
 
     ImGuiWindow* ref_window = nullptr;
@@ -3713,9 +3713,9 @@ void    ImGuiTestContext::ComboClick(ImGuiTestRef ref)
     ImGuiTestRefDesc desc(ref);
     LogDebug("ComboClick %s", desc.c_str());
 
-    IM_ASSERT(ref.Path != nullptr); // Should always pass an actual path, not an ID.
+    IM_ASSERT(ref.Path.length() > 0);
 
-    const char* path = ref.Path;
+    const char* path = ref.Path.c_str();
     const char* path_end = path + strlen(path);
     const char* p = ImStrchrRangeWithEscaping(path, path_end, '/');
     if (p == nullptr)
