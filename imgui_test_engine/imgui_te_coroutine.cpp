@@ -21,6 +21,7 @@
 
 #include "imgui_te_utils.h"
 #include "thirdparty/Str/Str.h"
+#include "imgui_te_python_gil.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -43,6 +44,11 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
 {
     // Set our thread name
     ImThreadSetCurrentThreadDescription(data->Name.c_str());
+
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+    // If using python bindings, acquire the GIL on te coroutine thread
+    PythonGIL::AcquireGilOnCoroThread();
+#endif
 
     // Set the thread coroutine
     GThreadCoroutine = data;
@@ -67,6 +73,11 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
         data->CoroutineRunning = false;
         data->StateChange.notify_all();
     }
+
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+    // If using python bindings, release the GIL on the coroutine thread
+    PythonGIL::ReleaseGilOnCoroThread();
+#endif
 }
 
 
@@ -143,6 +154,10 @@ static void Coroutine_ImplStdThread_Yield()
     {
         std::lock_guard<std::mutex> lock(data->StateMutex);
         data->CoroutineRunning = false;
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+        // If using python bindings, release the GIL on the coroutine thread, since we are resuming to the main thread
+        PythonGIL::ReleaseGilOnCoroThread();
+#endif
         data->StateChange.notify_all();
     }
 
@@ -152,7 +167,13 @@ static void Coroutine_ImplStdThread_Yield()
     {
         std::unique_lock<std::mutex> lock(data->StateMutex);
         if (data->CoroutineRunning)
+        {
+            // If using python bindings, acquire the GIL on the coroutine thread, since we are resuming its execution
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+            PythonGIL::AcquireGilOnCoroThread();
+#endif
             break; // Breakpoint here if you want to catch the point where execution of this coroutine resumes
+        }
         data->StateChange.wait(lock);
     }
 }
