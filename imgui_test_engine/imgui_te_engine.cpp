@@ -33,6 +33,10 @@
 #pragma warning (disable: 4127) // conditional expression is constant
 #endif
 
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+#include "imgui_te_python_gil.h"
+#endif
+
 /*
 
 Index of this file:
@@ -272,7 +276,13 @@ void    ImGuiTestEngine_Start(ImGuiTestEngine* engine, ImGuiContext* ui_ctx)
     if (!engine->TestQueueCoroutine)
     {
         IM_ASSERT(engine->IO.CoroutineFuncs && "Missing CoroutineFuncs! Use '#define IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL 1' or define your own implementation!");
-        engine->TestQueueCoroutine = engine->IO.CoroutineFuncs->CreateFunc(ImGuiTestEngine_TestQueueCoroutineMain, "Main Dear ImGui Test Thread", engine);
+        {
+            #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+            // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
+            PythonGIL::ReleaseGilOnMainThread_Scoped release;
+            #endif
+            engine->TestQueueCoroutine = engine->IO.CoroutineFuncs->CreateFunc(ImGuiTestEngine_TestQueueCoroutineMain, "Main Dear ImGui Test Thread", engine);
+        }
     }
     engine->Started = true;
 }
@@ -301,6 +311,10 @@ static void    ImGuiTestEngine_CoroutineStopAndJoin(ImGuiTestEngine* engine)
         engine->TestQueueCoroutineShouldExit = true;
         while (true)
         {
+            #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+            // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
+            PythonGIL::ReleaseGilOnMainThread_Scoped release;
+            #endif
             if (!engine->IO.CoroutineFuncs->RunFunc(engine->TestQueueCoroutine))
                 break;
         }
@@ -891,7 +905,14 @@ static void ImGuiTestEngine_PreEndFrame(ImGuiTestEngine* engine, ImGuiContext* u
 
     // Call user Test Function
     // (process on-going queues in a coroutine)
-    ImGuiTestEngine_RunTestFunc(engine);
+
+    {
+        #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+        // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
+        PythonGIL::ReleaseGilOnMainThread_Scoped release;
+        #endif
+        ImGuiTestEngine_RunTestFunc(engine);
+    }
 
     // Update hooks and output flags
     ImGuiTestEngine_UpdateHooks(engine);
