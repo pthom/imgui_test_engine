@@ -674,11 +674,11 @@ static void ImGuiTestEngine_UpdateWatchdog(ImGuiTestEngine* engine, ImGuiContext
     // Emit a warning and then fail the test after a given time.
     if (t0 < timer_warn && t1 >= timer_warn)
     {
-        test_ctx->LogWarning("[Watchdog] Running time for '%s' is >%.f seconds, may be excessive.", test_ctx->Test->Name, timer_warn);
+        test_ctx->LogWarning("[Watchdog] Running time for '%s' is >%.f seconds, may be excessive.", test_ctx->Test->Name.c_str(), timer_warn);
     }
     if (t0 < timer_kill_test && t1 >= timer_kill_test)
     {
-        test_ctx->LogError("[Watchdog] Running time for '%s' is >%.f seconds, aborting.", test_ctx->Test->Name, timer_kill_test);
+        test_ctx->LogError("[Watchdog] Running time for '%s' is >%.f seconds, aborting.", test_ctx->Test->Name.c_str(), timer_kill_test);
         IM_CHECK(false);
     }
 
@@ -1080,7 +1080,7 @@ static void ImGuiTestEngine_ProcessTestQueue(ImGuiTestEngine* engine)
 
         // Test name is not displayed in UI due to a happy accident - logged test name is cleared in
         // ImGuiTestEngine_RunTest(). This is a behavior we want.
-        ctx.LogWarning("Test: '%s' '%s'..", test->Category, test->Name);
+        ctx.LogWarning("Test: '%s' '%s'..", test->Category.c_str(), test->Name.c_str());
         if (test->VarsConstructor != NULL)
         {
             if ((engine->UserDataBuffer == NULL) || (engine->UserDataBufferSize < test->VarsSize))
@@ -1177,9 +1177,10 @@ ImGuiTest* ImGuiTestEngine_RegisterTest(ImGuiTestEngine* engine, const char* cat
 
     ImGuiTest* t = IM_NEW(ImGuiTest)();
     t->Group = group;
-    t->Category = category;
-    t->Name = name;
-    t->SourceFile = src_file;
+    t->Category = std::string(category);
+    t->Name = std::string(name);
+    if (src_file)
+        t->SourceFile = std::string(src_file);
     t->SourceLine = t->SourceLineEnd = src_line;
     engine->TestsAll.push_back(t);
 
@@ -1271,7 +1272,7 @@ bool ImGuiTestEngine_PassFilter(ImGuiTest* test, const char* filter_specs)
             // General filtering
             for (int n = 0; n < 2; n++)
             {
-                const char* name = (n == 0) ? test->Name : test->Category;
+                const char* name = (n == 0) ? test->Name.c_str() : test->Category.c_str();
 
                 bool match = true;
 
@@ -1507,7 +1508,7 @@ static void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* c
             args.InFlags = ImGuiCaptureFlags_Instant;
             args.InCaptureRect.Min = ImGui::GetMainViewport()->Pos;
             args.InCaptureRect.Max = args.InCaptureRect.Min + ImGui::GetMainViewport()->Size;
-            ImFormatString(args.InOutputFile, IM_ARRAYSIZE(args.InOutputFile), "output/failures/%s_%04d.png", ctx->Test->Name, ctx->ErrorCounter);
+            ImFormatString(args.InOutputFile, IM_ARRAYSIZE(args.InOutputFile), "output/failures/%s_%04d.png", ctx->Test->Name.c_str(), ctx->ErrorCounter);
             if (ImGuiTestEngine_CaptureScreenshot(engine, &args))
                 ctx->LogDebug("Saved '%s' (%d*%d pixels)", args.InOutputFile, (int)args.OutImageSize.x, (int)args.OutImageSize.y);
         }
@@ -1569,7 +1570,7 @@ static void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* c
     else if (engine->Abort)
         ctx->LogWarning("Aborted.");
     else if (test->Status == ImGuiTestStatus_Error)
-        ctx->LogError("%s test failed.", test->Name);
+        ctx->LogError("%s test failed.", test->Name.c_str());
     else
         ctx->LogWarning("Unknown status.");
 
@@ -1924,7 +1925,7 @@ void ImGuiTestEngine_AssertLog(const char* expr, const char* file, const char* f
         ctx->LogError("Assert: '%s'", expr);
         ctx->LogWarning("In %s:%d, function %s()", file, line, function);
         if (ImGuiTest* test = ctx->Test)
-            ctx->LogWarning("While running test: %s %s", test->Category, test->Name);
+            ctx->LogWarning("While running test: %s %s", test->Category.c_str(), test->Name.c_str());
     }
 }
 
@@ -2211,15 +2212,6 @@ void ImGuiTestLog::UpdateLineOffsets(ImGuiTestEngineIO* engine_io, ImGuiTestVerb
 
 ImGuiTest::~ImGuiTest()
 {
-    if (NameOwned)
-        ImGui::MemFree((char*)Name);
-}
-
-void ImGuiTest::SetOwnedName(const char* name)
-{
-    IM_ASSERT(!NameOwned);
-    NameOwned = true;
-    Name = ImStrdup(name);
 }
 
 //-------------------------------------------------------------------------

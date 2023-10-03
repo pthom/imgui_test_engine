@@ -9,6 +9,7 @@
 #include "imgui_internal.h"         // ImPool<>, ImRect, ImGuiItemStatusFlags, ImFormatString
 #include "imgui_te_utils.h"         // ImFuncPtr
 #include "imgui_capture_tool.h"     // ImGuiScreenCaptureFunc
+#include "thirdparty/Str/Str.h"
 
 //-------------------------------------------------------------------------
 // Forward Declarations
@@ -356,11 +357,10 @@ typedef void    (ImGuiTestVarsDestructor)(void* ptr);
 struct IMGUI_API ImGuiTest
 {
     // Test Definition
-    const char*                     Category = NULL;                // Literal, not owned
-    const char*                     Name = NULL;                    // Literal, generally not owned unless NameOwned=true
+    Str                             Category;
+    Str                             Name;
     ImGuiTestGroup                  Group = ImGuiTestGroup_Unknown; // Coarse groups: 'Tests' or 'Perf'
-    bool                            NameOwned = false;              //
-    const char*                     SourceFile = NULL;              // __FILE__
+    Str                             SourceFile;              // __FILE__
     int                             SourceLine = 0;                 // __LINE__
     int                             SourceLineEnd = 0;              // Calculated by ImGuiTestEngine_StartCalcSourceLineEnds()
     int                             ArgVariant = 0;                 // User parameter. Generally we use it to run variations of a same test by sharing GuiFunc/TestFunc
@@ -388,8 +388,6 @@ struct IMGUI_API ImGuiTest
     // Functions
     ImGuiTest() {}
     ~ImGuiTest();
-
-    void SetOwnedName(const char* name);
 
     template <typename T>
     void SetVarsDataType(void(*post_initialize)(ImGuiTestContext* ctx, T& vars) = NULL)
