@@ -75,12 +75,12 @@ enum ImGuiTestVerboseLevel : int;
 struct IMGUI_API ImGuiTestRef
 {
     ImGuiID         ID;             // Pre-hashed ID
-    const char*     Path;           // Relative or absolute path (string pointed to, not owned, as our lifetime is very short)
+    Str             Path;           // Relative or absolute path
 
-    ImGuiTestRef()                  { ID = 0; Path = NULL; }
-    ImGuiTestRef(ImGuiID id)        { ID = id; Path = NULL; }
-    ImGuiTestRef(const char* path)  { ID = 0; Path = path; }
-    bool IsEmpty() const            { return ID == 0 && (Path == NULL || Path[0] == 0); }
+    ImGuiTestRef()                  { ID = 0; Path = Str(""); }
+    ImGuiTestRef(ImGuiID id)        { ID = id; Path = Str(""); }
+    ImGuiTestRef(const char* path)  { ID = 0; Path = Str(path); }
+    bool IsEmpty() const            { return ID == 0 && Path.length() == 0; }
 };
 
 // Debug helper to output a string showing the Path, ID or Debug Label based on what is available (some items only have ID as we couldn't find/store a Path)
