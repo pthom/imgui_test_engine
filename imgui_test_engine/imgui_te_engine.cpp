@@ -33,7 +33,7 @@
 #pragma warning (disable: 4127) // conditional expression is constant
 #endif
 
-#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
 #include "imgui_te_python_gil.h"
 #endif
 
@@ -260,7 +260,7 @@ void    ImGuiTestEngine_Start(ImGuiTestEngine* engine, ImGuiContext* ui_ctx)
     {
         IM_ASSERT(engine->IO.CoroutineFuncs && "Missing CoroutineFuncs! Use '#define IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL 1' or define your own implementation!");
         {
-            #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+            #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
             // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
             PythonGIL::ReleaseGilOnMainThread_Scoped release;
             #endif
@@ -294,7 +294,7 @@ static void    ImGuiTestEngine_CoroutineStopAndJoin(ImGuiTestEngine* engine)
         engine->TestQueueCoroutineShouldExit = true;
         while (true)
         {
-            #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+            #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
             // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
             PythonGIL::ReleaseGilOnMainThread_Scoped release;
             #endif
@@ -819,7 +819,7 @@ static void ImGuiTestEngine_PostNewFrame(ImGuiTestEngine* engine, ImGuiContext* 
     const int input_queue_size_before = ui_ctx->InputEventsQueue.Size;
 
     {
-        #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+        #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
         // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
         PythonGIL::ReleaseGilOnMainThread_Scoped release;
         #endif
