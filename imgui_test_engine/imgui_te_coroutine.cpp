@@ -44,7 +44,7 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
 
 #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
     // If using python bindings, acquire the GIL on te coroutine thread
-    PythonGIL::AcquireGilOnCoroThread();
+    ImGuiTestEnginePythonGIL::AcquireGilOnCoroThread();
 #endif
 
     // Set the thread coroutine
@@ -73,7 +73,7 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
 
 #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
     // If using python bindings, release the GIL on the coroutine thread
-    PythonGIL::ReleaseGilOnCoroThread();
+    ImGuiTestEnginePythonGIL::ReleaseGilOnCoroThread();
 #endif
 }
 
@@ -153,7 +153,7 @@ static void Coroutine_ImplStdThread_Yield()
         data->CoroutineRunning = false;
 #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
         // If using python bindings, release the GIL on the coroutine thread, since we are resuming to the main thread
-        PythonGIL::ReleaseGilOnCoroThread();
+        ImGuiTestEnginePythonGIL::ReleaseGilOnCoroThread();
 #endif
         data->StateChange.notify_all();
     }
@@ -167,7 +167,7 @@ static void Coroutine_ImplStdThread_Yield()
         {
             // If using python bindings, acquire the GIL on the coroutine thread, since we are resuming its execution
 #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
-            PythonGIL::AcquireGilOnCoroThread();
+            ImGuiTestEnginePythonGIL::AcquireGilOnCoroThread();
 #endif
             break; // Breakpoint here if you want to catch the point where execution of this coroutine resumes
         }
