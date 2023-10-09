@@ -6,8 +6,10 @@
 // possible to call python functions from each of these threads.
 //
 // See imgui_te_python_gil.jpg for more explanation about how the GIL is transferred between the main thread and the coroutine thread
-namespace PythonGIL
+namespace ImGuiTestEnginePythonGIL
 {
+    void OnPythonModuleInit();
+
     // Instantiate ReleaseGilOnMainThread_Scoped in a scope to release the GIL on the main thread
     struct ReleaseGilOnMainThread_Scoped
     {

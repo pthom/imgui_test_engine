@@ -3,47 +3,46 @@
 #include "imgui_te_python_gil.h"
 
 #include <pybind11/pybind11.h>
-#include "Python.h"
-
 namespace py = pybind11;
 
+#include <memory>
 
-namespace PythonGIL
+
+namespace ImGuiTestEnginePythonGIL
 {
+
     ReleaseGilOnMainThread_Scoped::ReleaseGilOnMainThread_Scoped()
     {
-        if (Py_IsInitialized())
-            _impl = static_cast<void *>(new py::gil_scoped_release());
-        else
-            _impl = nullptr;
+        if (!Py_IsInitialized())
+            return;
+        _impl = static_cast<void *>(new py::gil_scoped_release());
     }
 
     ReleaseGilOnMainThread_Scoped::~ReleaseGilOnMainThread_Scoped()
     {
+        if (!Py_IsInitialized())
+            return;
         if (_impl)
             delete static_cast<py::gil_scoped_release *>(_impl);
     }
 
 
-    std::optional<PyGILState_STATE> GGILState_Coro;
+    std::unique_ptr<py::gil_scoped_acquire> GGilScopedAcquire;
 
     void AcquireGilOnCoroThread()
     {
         if (!Py_IsInitialized())
             return;
-
-        assert(! GGILState_Coro.has_value());
-        GGILState_Coro = PyGILState_Ensure();
+        assert(GGilScopedAcquire.get() == nullptr);
+        GGilScopedAcquire = std::make_unique<py::gil_scoped_acquire>();
     }
 
     void ReleaseGilOnCoroThread()
     {
         if (!Py_IsInitialized())
             return;
-
-        assert(GGILState_Coro.has_value());
-        PyGILState_Release(GGILState_Coro.value());
-        GGILState_Coro.reset();
+        assert(GGilScopedAcquire.get() != nullptr);
+        GGilScopedAcquire.reset();
     }
 
 }
