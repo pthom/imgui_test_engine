@@ -1,5 +1,5 @@
 #pragma once
-#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
 
 // When using imgui_test_engine via python bindings, the Global Interpreter Lock (GIL)
 // must be transferred between the main thread and the coroutine thread, so that it remains
@@ -22,4 +22,4 @@ namespace PythonGIL
     void ReleaseGilOnCoroThread();
 };
 
-#endif // #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+#endif // #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
