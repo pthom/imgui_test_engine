@@ -267,7 +267,7 @@ void    ImGuiTestEngine_Start(ImGuiTestEngine* engine, ImGuiContext* ui_ctx)
         {
             #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
             // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
-            PythonGIL::ReleaseGilOnMainThread_Scoped release;
+            ImGuiTestEnginePythonGIL::ReleaseGilOnMainThread_Scoped release;
             #endif
             engine->TestQueueCoroutine = engine->IO.CoroutineFuncs->CreateFunc(ImGuiTestEngine_TestQueueCoroutineMain, "Main Dear ImGui Test Thread", engine);
         }
@@ -301,7 +301,7 @@ static void    ImGuiTestEngine_CoroutineStopAndJoin(ImGuiTestEngine* engine)
         {
             #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
             // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
-            PythonGIL::ReleaseGilOnMainThread_Scoped release;
+            ImGuiTestEnginePythonGIL::ReleaseGilOnMainThread_Scoped release;
             #endif
             if (!engine->IO.CoroutineFuncs->RunFunc(engine->TestQueueCoroutine))
                 break;
@@ -810,7 +810,7 @@ static void ImGuiTestEngine_PostNewFrame(ImGuiTestEngine* engine, ImGuiContext* 
     {
         #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
         // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
-        PythonGIL::ReleaseGilOnMainThread_Scoped release;
+        ImGuiTestEnginePythonGIL::ReleaseGilOnMainThread_Scoped release;
         #endif
         engine->IO.CoroutineFuncs->RunFunc(engine->TestQueueCoroutine);
     }
