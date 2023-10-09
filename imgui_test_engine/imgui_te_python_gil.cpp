@@ -1,4 +1,4 @@
-#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
 
 #include "imgui_te_python_gil.h"
 
@@ -48,4 +48,4 @@ namespace PythonGIL
 
 }
 
-#endif // #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON
+#endif // #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
