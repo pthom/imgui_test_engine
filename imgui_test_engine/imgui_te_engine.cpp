@@ -1085,15 +1085,15 @@ static void ImGuiTestEngine_ProcessTestQueue(ImGuiTestEngine* engine)
 
     // Backup some state
     ImGuiIO& io = ImGui::GetIO();
-#ifdef IMGUI_BUNDLE_PYTHON_API
-    const std::string backup_ini_filename = io.IniFilename;
     ImGuiWindow* backup_nav_window = engine->UiContextTarget->NavWindow;
-    io.IniFilename = "";
-#else
+#ifndef IMGUI_BUNDLE_PYTHON_API
     const char* backup_ini_filename = io.IniFilename;
-    ImGuiWindow* backup_nav_window = engine->UiContextTarget->NavWindow;
     io.IniFilename = NULL;
+#else
+    std::string backup_ini_filename = io.IniFilename;
+    io.IniFilename = "";
 #endif
+
     int ran_tests = 0;
     engine->BatchStartTime = ImTimeGetInMicroseconds();
     engine->IO.IsRunningTests = true;
