@@ -33,6 +33,7 @@
 #endif
 
 #include "imgui_capture_tool.h"     // ImGuiScreenCaptureFunc
+#include "thirdparty/Str/Str.h"
 
 //-------------------------------------------------------------------------
 // Forward Declarations
@@ -410,10 +411,9 @@ struct IMGUI_API ImGuiTestOutput
 struct IMGUI_API ImGuiTest
 {
     // Test Definition
-    const char*                     Category = nullptr;             // Literal, not owned
-    const char*                     Name = nullptr;                 // Literal, generally not owned unless NameOwned=true
+    Str30                           Category;                       // Stored on the stack if len<30
+    Str30                           Name;                           // Stored on the stack if len<30
     ImGuiTestGroup                  Group = ImGuiTestGroup_Unknown; // Coarse groups: 'Tests' or 'Perf'
-    bool                            NameOwned = false;              //
     int                             ArgVariant = 0;                 // User parameter. Generally we use it to run variations of a same test by sharing GuiFunc/TestFunc
     ImGuiTestFlags                  Flags = ImGuiTestFlags_None;    // See ImGuiTestFlags_
     ImFuncPtr(ImGuiTestGuiFunc)     GuiFunc = nullptr;              // GUI function (optional if your test are running over an existing GUI application)
@@ -422,7 +422,7 @@ struct IMGUI_API ImGuiTest
     //ImVector<ImGuiTestRunTask>    Dependencies;                   // Registered via AddDependencyTest(), ran automatically before our test. This is a simpler wrapper to calling ctx->RunChildTest()
 
     // Sources information (exposed in UI)
-    const char*                     SourceFile = nullptr;           // __FILE__
+    Str256                          SourceFile;                     // __FILE__
     int                             SourceLine = 0;                 // __LINE__
     int                             SourceLineEnd = 0;              // end of line (when calculated by ImGuiTestEngine_StartCalcSourceLineEnds())
 
@@ -442,8 +442,6 @@ struct IMGUI_API ImGuiTest
     // Functions
     ImGuiTest() {}
     ~ImGuiTest();
-
-    void SetOwnedName(const char* name);
 
     template <typename T>
     void SetVarsDataType(void(*post_initialize)(ImGuiTestContext* ctx, T& vars) = nullptr)
