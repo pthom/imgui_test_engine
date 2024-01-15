@@ -779,7 +779,7 @@ void ImGuiTestContext::CaptureSetExtension(const char* ext)
     ImGuiCaptureArgs* args = CaptureArgs;
     if (args->InOutputFile[0] == 0)
     {
-        ImFormatString(args->InOutputFile, IM_ARRAYSIZE(args->InOutputFile), "output/captures/%s_%04d%s", Test->Name, CaptureCounter, ext);
+        ImFormatString(args->InOutputFile, IM_ARRAYSIZE(args->InOutputFile), "output/captures/%s_%04d%s", Test->Name.c_str(), CaptureCounter, ext);
         CaptureCounter++;
     }
     else
@@ -4176,8 +4176,8 @@ void    ImGuiTestContext::PerfCapture(const char* category, const char* test_nam
 
     ImGuiPerfToolEntry entry;
     entry.Timestamp = Engine->BatchStartTime;
-    entry.Category = category ? category : Test->Category;
-    entry.TestName = test_name ? test_name : Test->Name;
+    entry.Category = category ? category : Test->Category.c_str();
+    entry.TestName = test_name ? test_name : Test->Name.c_str();
     entry.DtDeltaMs = dt_delta_ms;
     entry.PerfStressAmount = PerfStressAmount;
     entry.GitBranchName = EngineIO->GitBranchName;
