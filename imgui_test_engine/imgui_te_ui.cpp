@@ -48,7 +48,7 @@ static bool ParseLineAndDrawFileOpenItemForSourceFile(ImGuiTestEngine* e, ImGuiT
     if (ImGui::MenuItem(buf.c_str()))
     {
         // FIXME-TESTS: Assume folder is same as folder of test->SourceFile!
-        const char* src_path = test->SourceFile;
+        const char* src_path = test->SourceFile.c_str();
         const char* src_name = ImPathFindFilename(src_path);
         buf.setf("%.*s%.*s", (int)(src_name - src_path), src_path, (int)(path_end - path_begin), path_begin);
 
@@ -240,7 +240,7 @@ static void GetFailingTestsAsString(ImGuiTestEngine* e, ImGuiTestGroup group, ch
             continue;
         if (!first)
             out_string->append(separator);
-        out_string->append(failing_test->Name);
+        out_string->append(failing_test->Name.c_str());
         first = false;
     }
 }
@@ -440,7 +440,7 @@ static void ShowTestGroup(ImGuiTestEngine* e, ImGuiTestGroup group, Str* filter)
             }
 
             ImGui::TableNextColumn();
-            if (ImGui::Selectable(test->Category, test == e->UiSelectedTest, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SelectOnNav))
+            if (ImGui::Selectable(test->Category.c_str(), test == e->UiSelectedTest, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SelectOnNav))
                 select_test = true;
 
             // Double-click to run test, CTRL+Double-click to run GUI function
@@ -476,27 +476,27 @@ static void ShowTestGroup(ImGuiTestEngine* e, ImGuiTestGroup group, Str* filter)
 
                 ImGui::Separator();
 
-                const bool open_source_available = (test->SourceFile != NULL) && (e->IO.SrcFileOpenFunc != NULL);
+                const bool open_source_available = (!test->SourceFile.empty()) && (e->IO.SrcFileOpenFunc != NULL);
 
                 Str128 buf;
-                if (test->SourceFile != NULL) // This is normally set by IM_REGISTER_TEST() but custom registration may omit it.
-                    buf.setf("Open source (%s:%d)", ImPathFindFilename(test->SourceFile), test->SourceLine);
+                if (!test->SourceFile.empty()) // This is normally set by IM_REGISTER_TEST() but custom registration may omit it.
+                    buf.setf("Open source (%s:%d)", ImPathFindFilename(test->SourceFile.c_str()), test->SourceLine);
                 else
                     buf.set("Open source");
                 if (ImGui::MenuItem(buf.c_str(), NULL, false, open_source_available))
-                    e->IO.SrcFileOpenFunc(test->SourceFile, test->SourceLine, e->IO.SrcFileOpenUserData);
-                if (ImGui::MenuItem("View source...", NULL, false, test->SourceFile != NULL))
+                    e->IO.SrcFileOpenFunc(test->SourceFile.c_str(), test->SourceLine, e->IO.SrcFileOpenUserData);
+                if (ImGui::MenuItem("View source...", NULL, false, !test->SourceFile.empty()))
                     view_source = true;
 
                 if (group == ImGuiTestGroup_Perfs && ImGui::MenuItem("View perflog"))
                 {
-                    e->PerfTool->ViewOnly(test->Name);
+                    e->PerfTool->ViewOnly(test->Name.c_str());
                     e->UiPerfToolOpen = true;
                 }
 
                 ImGui::Separator();
                 if (ImGui::MenuItem("Copy name", NULL, false))
-                    ImGui::SetClipboardText(test->Name);
+                    ImGui::SetClipboardText(test->Name.c_str());
 
                 if (test_output->Status == ImGuiTestStatus_Error)
                     if (ImGui::MenuItem("Copy names of all failing tests"))
@@ -541,7 +541,7 @@ static void ShowTestGroup(ImGuiTestEngine* e, ImGuiTestGroup group, Str* filter)
             {
                 source_blurb.clear();
                 size_t file_size = 0;
-                char* file_data = (char*)ImFileLoadToMemory(test->SourceFile, "rb", &file_size);
+                char* file_data = (char*)ImFileLoadToMemory(test->SourceFile.c_str(), "rb", &file_size);
                 if (file_data)
                     source_blurb.append(file_data, file_data + file_size);
                 else
@@ -566,7 +566,7 @@ static void ShowTestGroup(ImGuiTestEngine* e, ImGuiTestGroup group, Str* filter)
             }
 
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(test->Name);
+            ImGui::TextUnformatted(test->Name.c_str());
 
             // Process selection
             if (select_test)
@@ -623,7 +623,7 @@ static void ImGuiTestEngine_ShowLogAndTools(ImGuiTestEngine* engine)
         ImGuiTest* selected_test = engine->UiSelectedTest;
 
         if (selected_test != NULL)
-            ImGui::Text("Log for '%s' '%s'", selected_test->Category, selected_test->Name);
+            ImGui::Text("Log for '%s' '%s'", selected_test->Category.c_str(), selected_test->Name.c_str());
         else
             ImGui::Text("N/A");
         if (ImGui::SmallButton("Clear"))

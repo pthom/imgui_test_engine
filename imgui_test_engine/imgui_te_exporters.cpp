@@ -36,7 +36,7 @@ void ImGuiTestEngine_PrintResultSummary(ImGuiTestEngine* engine)
         printf("\nFailing tests:\n");
         for (ImGuiTest* test : engine->TestsAll)
             if (test->Output.Status == ImGuiTestStatus_Error)
-                printf("- %s\n", test->Name);
+                printf("- %s\n", test->Name.c_str());
     }
 
     ImOsConsoleSetTextColor(ImOsConsoleStream_StandardOutput, (count_success == count_tested) ? ImOsConsoleTextColor_BrightGreen : ImOsConsoleTextColor_BrightRed);
@@ -75,7 +75,7 @@ static void ImGuiTestEngine_ExportResultSummary(ImGuiTestEngine* engine, FILE* f
             if (test->Group != group)
                 continue;
             if (test->Output.Status == ImGuiTestStatus_Error)
-                fprintf(fp, "%s- %s\n", indent, test->Name);
+                fprintf(fp, "%s- %s\n", indent, test->Name.c_str());
         }
         fprintf(fp, "\n");
     }
@@ -202,8 +202,8 @@ void ImGuiTestEngine_ExportJUnitXml(ImGuiTestEngine* engine, const char* output_
             ImGuiTestLog* test_log = &test_output->Log;
 
             // Attributes for <testcase> tag.
-            const char* testcase_name = test->Name;
-            const char* testcase_classname = test->Category;
+            const char* testcase_name = test->Name.c_str();
+            const char* testcase_classname = test->Category.c_str();
             const char* testcase_status = ImGuiTestEngine_GetStatusName(test_output->Status);
             const float testcase_time = (float)((double)(test_output->EndTime - test_output->StartTime) / 1000000.0);
 
@@ -272,7 +272,7 @@ void ImGuiTestEngine_ExportJUnitXml(ImGuiTestEngine* engine, const char* output_
                     continue;
                 if (test_output->Status == ImGuiTestStatus_Unknown)
                     continue;
-                fprintf(fp, "      [0000] Test: '%s' '%s'..\n", test->Category, test->Name);
+                fprintf(fp, "      [0000] Test: '%s' '%s'..\n", test->Category.c_str(), test->Name.c_str());
                 ImGuiTestVerboseLevel level = test_output->Status == ImGuiTestStatus_Error ? engine->IO.ConfigVerboseLevelOnError : engine->IO.ConfigVerboseLevel;
                 ImGuiTestEngine_PrintLogLines(fp, &test_output->Log, 6, level);
             }
@@ -289,7 +289,7 @@ void ImGuiTestEngine_ExportJUnitXml(ImGuiTestEngine* engine, const char* output_
                     continue;
                 if (test_output->Status == ImGuiTestStatus_Unknown)
                     continue;
-                fprintf(fp, "      [0000] Test: '%s' '%s'..\n", test->Category, test->Name);
+                fprintf(fp, "      [0000] Test: '%s' '%s'..\n", test->Category.c_str(), test->Name.c_str());
                 ImGuiTestEngine_PrintLogLines(fp, &test_output->Log, 6, ImGuiTestVerboseLevel_Warning);
             }
             ImGuiTestEngine_ExportResultSummary(engine, fp, 6, (ImGuiTestGroup)testsuite_id);
