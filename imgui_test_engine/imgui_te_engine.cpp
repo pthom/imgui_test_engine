@@ -408,9 +408,9 @@ ImGuiTest* ImGuiTestEngine_FindTestByName(ImGuiTestEngine* engine, const char* c
     for (int n = 0; n < engine->TestsAll.Size; n++)
     {
         ImGuiTest* test = engine->TestsAll[n];
-        if (name != NULL && strcmp(test->Name, name) != 0)
+        if (name != NULL && strcmp(test->Name.c_str(), name) != 0)
             continue;
-        if (category != NULL && strcmp(test->Category, category) != 0)
+        if (category != NULL && strcmp(test->Category.c_str(), category) != 0)
             continue;
         return test;
     }
@@ -724,11 +724,11 @@ static void ImGuiTestEngine_UpdateWatchdog(ImGuiTestEngine* engine, ImGuiContext
     // Emit a warning and then fail the test after a given time.
     if (t0 < timer_warn && t1 >= timer_warn)
     {
-        test_ctx->LogWarning("[Watchdog] Running time for '%s' is >%.f seconds, may be excessive.", test_ctx->Test->Name, timer_warn);
+        test_ctx->LogWarning("[Watchdog] Running time for '%s' is >%.f seconds, may be excessive.", test_ctx->Test->Name.c_str(), timer_warn);
     }
     if (t0 < timer_kill_test && t1 >= timer_kill_test)
     {
-        test_ctx->LogError("[Watchdog] Running time for '%s' is >%.f seconds, aborting.", test_ctx->Test->Name, timer_kill_test);
+        test_ctx->LogError("[Watchdog] Running time for '%s' is >%.f seconds, aborting.", test_ctx->Test->Name.c_str(), timer_kill_test);
         IM_CHECK(false);
     }
 
@@ -1085,10 +1085,15 @@ static void ImGuiTestEngine_ProcessTestQueue(ImGuiTestEngine* engine)
 
     // Backup some state
     ImGuiIO& io = ImGui::GetIO();
+#ifdef IMGUI_BUNDLE_PYTHON_API
+    const std::string backup_ini_filename = io.IniFilename;
+    ImGuiWindow* backup_nav_window = engine->UiContextTarget->NavWindow;
+    io.IniFilename = "";
+#else
     const char* backup_ini_filename = io.IniFilename;
     ImGuiWindow* backup_nav_window = engine->UiContextTarget->NavWindow;
     io.IniFilename = NULL;
-
+#endif
     int ran_tests = 0;
     engine->BatchStartTime = ImTimeGetInMicroseconds();
     engine->IO.IsRunningTests = true;
@@ -1300,7 +1305,7 @@ bool ImGuiTestEngine_PassFilter(ImGuiTest* test, const char* filter_specs)
             // General filtering
             for (int n = 0; n < 2; n++)
             {
-                const char* name = (n == 0) ? test->Name : test->Category;
+                const char* name = (n == 0) ? test->Name.c_str() : test->Category.c_str();
 
                 bool match = true;
 
@@ -1560,11 +1565,11 @@ void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* parent_c
     {
         ctx->LogEx(ImGuiTestVerboseLevel_Info, ImGuiTestLogFlags_NoHeader, "----------------------------------------------------------------------"); // Intentionally TTY only (just before clear: make it a flag?)
         test_output->Log.Clear();
-        ctx->LogWarning("Test: '%s' '%s'..", test->Category, test->Name);
+        ctx->LogWarning("Test: '%s' '%s'..", test->Category.c_str(), test->Name.c_str());
     }
     else
     {
-        ctx->LogWarning("Child Test: '%s' '%s'..", test->Category, test->Name);
+        ctx->LogWarning("Child Test: '%s' '%s'..", test->Category.c_str(), test->Name.c_str());
         ctx->LogWarning("(ShareVars=%d ShareTestContext=%d)", (run_flags & ImGuiTestRunFlags_ShareVars) ? 1 : 0, (run_flags & ImGuiTestRunFlags_ShareTestContext) ? 1 : 0);
     }
 
@@ -1671,7 +1676,7 @@ void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* parent_c
             args.InFlags = ImGuiCaptureFlags_Instant;
             args.InCaptureRect.Min = ImGui::GetMainViewport()->Pos;
             args.InCaptureRect.Max = args.InCaptureRect.Min + ImGui::GetMainViewport()->Size;
-            ImFormatString(args.InOutputFile, IM_ARRAYSIZE(args.InOutputFile), "output/failures/%s_%04d.png", ctx->Test->Name, ctx->ErrorCounter);
+            ImFormatString(args.InOutputFile, IM_ARRAYSIZE(args.InOutputFile), "output/failures/%s_%04d.png", ctx->Test->Name.c_str(), ctx->ErrorCounter);
             if (ImGuiTestEngine_CaptureScreenshot(engine, &args))
                 ctx->LogDebug("Saved '%s' (%d*%d pixels)", args.InOutputFile, (int)args.OutImageSize.x, (int)args.OutImageSize.y);
         }
@@ -1732,7 +1737,7 @@ void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* parent_c
     else if (engine->Abort)
         ctx->LogWarning("Aborted.");
     else if (test_output->Status == ImGuiTestStatus_Error)
-        ctx->LogError("%s test failed.", test->Name);
+        ctx->LogError("%s test failed.", test->Name.c_str());
     else
         ctx->LogWarning("Unknown status.");
 
@@ -2108,7 +2113,7 @@ void ImGuiTestEngine_AssertLog(const char* expr, const char* file, const char* f
             ctx->LogError("Assert: '%s'", expr);
             ctx->LogWarning("In %s:%d, function %s()", file, line, function);
             if (ImGuiTest* test = ctx->Test)
-                ctx->LogWarning("While running test: %s %s", test->Category, test->Name);
+            ctx->LogWarning("While running test: %s %s", test->Category.c_str(), test->Name.c_str());
         }
 }
 
@@ -2404,15 +2409,6 @@ void ImGuiTestLog::UpdateLineOffsets(ImGuiTestEngineIO* engine_io, ImGuiTestVerb
 
 ImGuiTest::~ImGuiTest()
 {
-    if (NameOwned)
-        ImGui::MemFree((char*)Name);
-}
-
-void ImGuiTest::SetOwnedName(const char* name)
-{
-    IM_ASSERT(!NameOwned);
-    NameOwned = true;
-    Name = ImStrdup(name);
 }
 
 //-------------------------------------------------------------------------
