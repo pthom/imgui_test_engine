@@ -177,7 +177,16 @@ IMGUI_API ImGuiTextBuffer* ImGuiTestEngine_GetTempStringBuilder();
 //-------------------------------------------------------------------------
 
 // Functions: Initialization
-IMGUI_API ImGuiTestEngine*    ImGuiTestEngine_CreateContext();                                      // Create test engine
+
+// ImGuiTestEngine_CreateContext: Create test engine
+// Note for python bindings users:
+//     Integrating ImGui TestEngine directly from python, and without using HelloImGui and ImmApp is very difficult:
+//         ImGui Test Engine uses two different threads (one for the main gui, and one for the scenario runner).
+//         Your python code will be called from two separate threads, and this breaks the GIL!
+//         HelloImGui and ImmApp handle this well by transferring the GIL between threads (from C++)
+//     For gory details, see https://github.com/pthom/imgui_test_engine/blob/imgui_bundle/imgui_test_engine/imgui_te_python_gil.jpg
+IMGUI_API ImGuiTestEngine*    ImGuiTestEngine_CreateContext();
+
 IMGUI_API void                ImGuiTestEngine_DestroyContext(ImGuiTestEngine* engine);              // Destroy test engine. Call after ImGui::DestroyContext() so test engine specific ini data gets saved.
 IMGUI_API void                ImGuiTestEngine_Start(ImGuiTestEngine* engine, ImGuiContext* ui_ctx); // Bind to a dear imgui context. Start coroutine.
 IMGUI_API void                ImGuiTestEngine_Stop(ImGuiTestEngine* engine);                        // Stop coroutine and export if any. (Unbind will lazily happen on context shutdown)
