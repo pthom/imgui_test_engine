@@ -45,11 +45,6 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
     // Set our thread name
     ImThreadSetCurrentThreadDescription(data->Name.c_str());
 
-#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
-    // If using python bindings, acquire the GIL on te coroutine thread
-    ImGuiTestEnginePythonGIL::AcquireGilOnCoroThread();
-#endif
-
     // Set the thread coroutine
     GThreadCoroutine = data;
 
@@ -62,8 +57,18 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
         data->StateChange.wait(lock);
     }
 
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
+    // If using python bindings, acquire the GIL on te coroutine thread
+    ImGuiTestEnginePythonGIL::AcquireGilOnCoroThread();
+#endif
+
     // Run user code, which will then call Yield() when it wants to yield control
     func(ctx);
+
+#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
+    // If using python bindings, release the GIL on the coroutine thread
+    ImGuiTestEnginePythonGIL::ReleaseGilOnCoroThread();
+#endif
 
     // Mark as terminated
     {
@@ -73,11 +78,6 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
         data->CoroutineRunning = false;
         data->StateChange.notify_all();
     }
-
-#ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
-    // If using python bindings, release the GIL on the coroutine thread
-    ImGuiTestEnginePythonGIL::ReleaseGilOnCoroThread();
-#endif
 }
 
 
