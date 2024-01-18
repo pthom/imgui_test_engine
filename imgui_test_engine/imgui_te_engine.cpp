@@ -1119,7 +1119,7 @@ static void ImGuiTestEngine_ProcessTestQueue(ImGuiTestEngine* engine)
         if (engine->IO.ConfigRestoreFocusAfterTests)
             ImGui::FocusWindow(backup_nav_window);
     }
-    io.IniFilename = backup_ini_filename;
+    io.IniFilename = NULL;// backup_ini_filename;
 }
 
 bool ImGuiTestEngine_IsTestQueueEmpty(ImGuiTestEngine* engine)
