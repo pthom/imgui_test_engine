@@ -1090,7 +1090,7 @@ static void ImGuiTestEngine_ProcessTestQueue(ImGuiTestEngine* engine)
     // Backup some state
     ImGuiIO& io = ImGui::GetIO();
     ImGuiWindow* backup_nav_window = engine->UiContextTarget->NavWindow;
-#ifndef IMGUI_BUNDLE_PYTHON_API
+#ifndef IMGUI_BUNDLE_IMGUI_USE_STRING
     const char* backup_ini_filename = io.IniFilename;
     io.IniFilename = NULL;
 #else
