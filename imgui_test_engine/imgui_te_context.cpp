@@ -3076,7 +3076,7 @@ bool    ImGuiTestContext::ItemSelectAndReadValue(ImGuiTestRef ref, ImGuiDataType
     IM_ASSERT((flags & ~SUPPORTED_FLAGS) == 0);
 
     IMGUI_TEST_CONTEXT_REGISTER_DEPTH(this);
-    LogDebug("ItemSelectReadValue '%s' 0x%08X as %s", ref.Path ? ref.Path : "NULL", ref.ID, data_type_info->Name);
+    LogDebug("ItemSelectReadValue '%s' 0x%08X as %s", ref.Path.length() > 0 ? ref.Path : "NULL", ref.ID, data_type_info->Name);
     IM_CHECK_SILENT_RETV(out_data != NULL, false);
 
     Str256 backup_clipboard = ImGui::GetClipboardText();
