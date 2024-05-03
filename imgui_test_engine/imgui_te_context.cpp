@@ -23,7 +23,7 @@
 ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref)
 {
     if (ref.Path.length() > 0)
-        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s' > %08X", ref.Path, ref.ID);
+        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s' > %08X", ref.Path.c_str(), ref.ID);
     else
         ImFormatString(Buf, IM_ARRAYSIZE(Buf), "%08X", ref.ID);
 }
@@ -2996,7 +2996,7 @@ bool    ImGuiTestContext::ItemSelectAndReadValue(ImGuiTestRef ref, ImGuiDataType
     IM_ASSERT((flags & ~SUPPORTED_FLAGS) == 0);
 
     IMGUI_TEST_CONTEXT_REGISTER_DEPTH(this);
-    LogDebug("ItemSelectReadValue '%s' %08X as %s", ref.Path ? ref.Path : "NULL", ref.ID, data_type_info->Name);
+    LogDebug("ItemSelectReadValue '%s' %08X as %s", (ref.Path.length() > 0) ? ref.Path.c_str() : "NULL", ref.ID, data_type_info->Name);
     IM_CHECK_SILENT_RETV(out_data != NULL, false);
 
     Str256 backup_clipboard = ImGui::GetClipboardText();
