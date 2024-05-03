@@ -36,19 +36,19 @@
 ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref)
 {
     if (ref.Path.length() > 0 && ref.ID != 0)
-        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s' (id 0x%08X)", ref.Path, ref.ID);
+        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s' (id 0x%08X)", ref.Path.c_str(), ref.ID);
     else if (ref.Path.length() > 0)
-        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s'", ref.Path);
+        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s'", ref.Path.c_str());
     else
         ImFormatString(Buf, IM_COUNTOF(Buf), "0x%08X", ref.ID);
 }
 
 ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref, const ImGuiTestItemInfo& item)
 {
-    if (ref.Path.length > 0 && item.ID != 0)
-        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s' (id 0x%08X)", ref.Path, item.ID);
-    else if (ref.Path)
-        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s'", ref.Path);
+    if (ref.Path.length() > 0 && item.ID != 0)
+        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s' (id 0x%08X)", ref.Path.c_str(), item.ID);
+    else if (ref.Path.length() > 0)
+        ImFormatString(Buf, IM_COUNTOF(Buf), "'%s'", ref.Path.c_str());
     else
         ImFormatString(Buf, IM_COUNTOF(Buf), "0x%08X (label \"%s\")", ref.ID, item.DebugLabel);
 }
@@ -985,12 +985,12 @@ static void ItemInfoErrorLog(ImGuiTestContext* ctx, ImGuiTestRef ref, ImGuiID fu
 
     // Prefixing the string with / ignore the reference/current ID
     Str256 msg;
-    if (ref.Path && ref.Path[0] == '/' && ctx->RefStr[0] != 0)
-        msg.setf("Unable to locate item: '%s' (0x%08X)", ref.Path, full_id);
-    else if (ref.Path && full_id != 0)
-        msg.setf("Unable to locate item: '%s/%s' (0x%08X)", ctx->RefStr, ref.Path, full_id);
-    else if (ref.Path)
-        msg.setf("Unable to locate item: '%s/%s' (0x%08X)", ctx->RefStr, ref.Path, full_id);
+    if (!ref.Path.empty() && ref.Path[0] == '/' && ctx->RefStr[0] != 0)
+        msg.setf("Unable to locate item: '%s' (0x%08X)", ref.Path.c_str(), full_id);
+    else if (!ref.Path.empty() && full_id != 0)
+        msg.setf("Unable to locate item: '%s/%s' (0x%08X)", ctx->RefStr, ref.Path.c_str(), full_id);
+    else if (ref.Path.empty())
+        msg.setf("Unable to locate item: '%s/%s' (0x%08X)", ctx->RefStr, ref.Path.c_str(), full_id);
     else
         msg.setf("Unable to locate item: 0x%08X", ref.ID);
 
@@ -1071,7 +1071,7 @@ ImGuiTestItemInfo ImGuiTestContext::ItemInfoOpenFullPath(ImGuiTestRef ref, ImGui
         return ItemInfoNull();
 
     IMGUI_TEST_CONTEXT_REGISTER_DEPTH(this);
-    LogDebug("ItemInfoOpenFullPath: '%s'\n", ref.Path);
+    LogDebug("ItemInfoOpenFullPath: '%s'\n", ref.Path.c_str());
 
     // Tries to auto open intermediaries leading to final path.
     // Note that openables cannot be part of the **/ (else it means we would have to open everything).
@@ -1079,7 +1079,7 @@ ImGuiTestItemInfo ImGuiTestContext::ItemInfoOpenFullPath(ImGuiTestRef ref, ImGui
     // - Openables can be after the wildcard     "**/Node2/Node3/Lv4/Button"
     int opened_parents = 0;
 
-    const char* path = ref.Path;
+    const char* path = ref.Path.c_str();
    
     for (const char* next_path = nullptr; path[0] != 0; path = next_path)
     {
@@ -3289,7 +3289,7 @@ bool    ImGuiTestContext::ItemReadAsScalar(ImGuiTestRef ref, ImGuiDataType data_
     IM_ASSERT((flags & ~SUPPORTED_FLAGS) == 0);
 
     IMGUI_TEST_CONTEXT_REGISTER_DEPTH(this);
-    LogDebug("ItemSelectReadValue '%s' 0x%08X as %s", ref.Path ? ref.Path : "nullptr", ref.ID, data_type_info->Name);
+    LogDebug("ItemSelectReadValue '%s' 0x%08X as %s", ref.Path.length() > 0 ? ref.Path.c_str() : "nullptr", ref.ID, data_type_info->Name);
     IM_CHECK_SILENT_RETV(out_data != nullptr, false);
 
     Str256 backup_clipboard = ImGui::GetClipboardText();
