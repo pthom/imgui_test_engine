@@ -8,6 +8,10 @@
 #include "imgui.h"
 #include "imgui_internal.h"         // ImPool<>, ImRect, ImGuiItemStatusFlags, ImFormatString
 
+#ifdef IMGUI_BUNDLE_PYTHON_API
+#include <string>
+#endif
+
 //-----------------------------------------------------------------------------
 // Function Pointers
 //-----------------------------------------------------------------------------
@@ -273,8 +277,18 @@ struct IMGUI_API ImGuiTestEngineIO
 
     // Options: Export
     // While you can manually call ImGuiTestEngine_Export(), registering filename/format here ensure the crash handler will always export if application crash.
+    // Note: in Python, use export_result_filename_set() to set this value.
     const char*                 ExportResultsFilename = NULL;
     ImGuiTestEngineExportFormat ExportResultsFormat = (ImGuiTestEngineExportFormat)0;
+
+#ifdef IMGUI_BUNDLE_PYTHON_API
+    // Set ExportResultsFilename from Python
+    void ExportResultsFilename_Set(const char* filename) {
+        static std::string value;
+        value = filename;
+        ExportResultsFilename = value.data();
+    }
+#endif
 
     // Options: Sanity Checks
     bool                        CheckDrawDataIntegrity = false;     // Check ImDrawData integrity (buffer count, etc.). Currently cheap but may become a slow operation.
