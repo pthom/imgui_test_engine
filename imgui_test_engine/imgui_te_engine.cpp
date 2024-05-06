@@ -2627,3 +2627,15 @@ ImGuiTest::~ImGuiTest()
 }
 
 //-------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+// [SECTION] Patches for ImGui Bundle
+//-------------------------------------------------------------------------
+#ifdef IMGUI_BUNDLE_PYTHON_API
+// Set ExportResultsFilename from Python
+void ImGuiTestEngineIO::ExportResultsFilename_Set(const char* filename) {
+    static std::string value;
+    value = filename;
+    ExportResultsFilename = value.data();
+}
+#endif

@@ -22,6 +22,12 @@
 #include <string>
 #endif
 
+// IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API is always defined (even when building python bindings),
+// but is used as a marker to exclude certain functions from the python binding code.
+#ifndef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+#define IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+#endif
+
 //-----------------------------------------------------------------------------
 // Function Pointers
 //-----------------------------------------------------------------------------
@@ -289,16 +295,14 @@ struct IMGUI_API ImGuiTestEngineIO
     // Options: Export
     // While you can manually call ImGuiTestEngine_Export(), registering filename/format here ensure the crash handler will always export if application crash.
     // Note: in Python, use export_result_filename_set() to set this value.
+#ifdef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
     const char*                 ExportResultsFilename = NULL;
+#endif
     ImGuiTestEngineExportFormat ExportResultsFormat = (ImGuiTestEngineExportFormat)0;
 
 #ifdef IMGUI_BUNDLE_PYTHON_API
     // Set ExportResultsFilename from Python
-    void ExportResultsFilename_Set(const char* filename) {
-        static std::string value;
-        value = filename;
-        ExportResultsFilename = value.data();
-    }
+    void ExportResultsFilename_Set(const char* filename);
 #endif
 
     // Options: Sanity Checks
