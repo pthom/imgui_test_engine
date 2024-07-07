@@ -23,19 +23,19 @@
 ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref)
 {
     if (ref.Path.length() > 0 && ref.ID != 0)
-        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s' (id 0x%08X)", ref.Path, ref.ID);
+        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s' (id 0x%08X)", ref.Path.c_str(), ref.ID);
     else if (ref.Path.length() > 0)
-        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s'", ref.Path);
+        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s'", ref.Path.c_str());
     else
         ImFormatString(Buf, IM_ARRAYSIZE(Buf), "0x%08X", ref.ID);
 }
 
 ImGuiTestRefDesc::ImGuiTestRefDesc(const ImGuiTestRef& ref, const ImGuiTestItemInfo& item)
 {
-    if (ref.Path.length > 0 && item.ID != 0)
-        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s' (id 0x%08X)", ref.Path, item.ID);
-    else if (ref.Path)
-        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s'", ref.Path);
+    if (ref.Path.length() > 0 && item.ID != 0)
+        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s' (id 0x%08X)", ref.Path.c_str(), item.ID);
+    else if (ref.Path.length() > 0)
+        ImFormatString(Buf, IM_ARRAYSIZE(Buf), "'%s'", ref.Path.c_str());
     else
         ImFormatString(Buf, IM_ARRAYSIZE(Buf), "0x%08X (label \"%s\")", ref.ID, item.DebugLabel);
 }
@@ -3060,7 +3060,7 @@ bool    ImGuiTestContext::ItemSelectAndReadValue(ImGuiTestRef ref, ImGuiDataType
     IM_ASSERT((flags & ~SUPPORTED_FLAGS) == 0);
 
     IMGUI_TEST_CONTEXT_REGISTER_DEPTH(this);
-    LogDebug("ItemSelectReadValue '%s' 0x%08X as %s", ref.Path.length() > 0 ? ref.Path : "NULL", ref.ID, data_type_info->Name);
+    LogDebug("ItemSelectReadValue '%s' 0x%08X as %s", ref.Path.length() > 0 ? ref.Path.c_str() : "NULL", ref.ID, data_type_info->Name);
     IM_CHECK_SILENT_RETV(out_data != NULL, false);
 
     Str256 backup_clipboard = ImGui::GetClipboardText();
