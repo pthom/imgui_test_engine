@@ -905,14 +905,7 @@ static void ImGuiTestEngine_PreEndFrame(ImGuiTestEngine* engine, ImGuiContext* u
 
     // Call user Test Function
     // (process on-going queues in a coroutine)
-
-    {
-        #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
-        // Release the GIL on the main thread, to enable it to be acquired temporarily on the new coroutine thread
-        ImGuiTestEnginePythonGIL::ReleaseGilOnMainThread_Scoped release;
-        #endif
-        ImGuiTestEngine_RunTestFunc(engine);
-    }
+    ImGuiTestEngine_RunTestFunc(engine);
 
     // Update hooks and output flags
     ImGuiTestEngine_UpdateHooks(engine);
