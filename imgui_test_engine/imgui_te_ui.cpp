@@ -519,7 +519,7 @@ static void ShowTestGroup(ImGuiTestEngine* e, ImGuiTestGroup group, Str* filter,
                     buf.set("Open source");
                 if (ImGui::MenuItem(buf.c_str(), nullptr, false, open_source_available))
                     ImGuiTestEngine_OpenSourceFile(e, test->SourceFile.c_str(), test->SourceLine);
-                if (ImGui::MenuItem("View source...", nullptr, false, test->SourceFile != nullptr))
+                if (ImGui::MenuItem("View source...", nullptr, false, !test->SourceFile.empty()))
                     view_source = true;
 
                 if (group == ImGuiTestGroup_Perfs && ImGui::MenuItem("View perflog"))
