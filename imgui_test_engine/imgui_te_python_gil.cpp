@@ -2,13 +2,43 @@
 
 #include "imgui_te_python_gil.h"
 
-#include <pybind11/pybind11.h>
-namespace py = pybind11;
-
+#include <Python.h>
 #include <memory>
 
 //#define LOG_GIL(x) printf(x)
 #define LOG_GIL(x)
+
+
+//
+// gil_scoped_acquire and gil_scoped_release are RAII classes to acquire and release the GIL
+//
+struct gil_scoped_acquire
+{
+public:
+    // non copyable
+    gil_scoped_acquire(gil_scoped_acquire const&) = delete;
+    gil_scoped_acquire& operator=(gil_scoped_acquire const&) = delete;
+
+    gil_scoped_acquire() noexcept : state(PyGILState_Ensure()) { }
+    ~gil_scoped_acquire() { PyGILState_Release(state); }
+
+private:
+    const PyGILState_STATE state;
+};
+
+struct gil_scoped_release
+{
+public:
+    // non copyable
+    gil_scoped_release(gil_scoped_acquire const&) = delete;
+    gil_scoped_release& operator=(gil_scoped_acquire const&) = delete;
+
+    gil_scoped_release() noexcept : state(PyEval_SaveThread()) { }
+    ~gil_scoped_release() { PyEval_RestoreThread(state); }
+
+private:
+    PyThreadState *state;
+};
 
 
 namespace ImGuiTestEnginePythonGIL
@@ -22,7 +52,7 @@ namespace ImGuiTestEnginePythonGIL
             return;
         }
         LOG_GIL("ReleaseGilOnMainThread_Scoped: start...\n");
-        _impl = static_cast<void *>(new py::gil_scoped_release());
+        _impl = static_cast<void *>(new gil_scoped_release());
         LOG_GIL("ReleaseGilOnMainThread_Scoped: done...\n");
     }
 
@@ -36,7 +66,7 @@ namespace ImGuiTestEnginePythonGIL
         if (_impl)
         {
             LOG_GIL("~ReleaseGilOnMainThread_Scoped: start...\n");
-            delete static_cast<py::gil_scoped_release *>(_impl);
+            delete static_cast<gil_scoped_release *>(_impl);
             LOG_GIL("~ReleaseGilOnMainThread_Scoped: done...\n");
         }
         else
@@ -45,8 +75,7 @@ namespace ImGuiTestEnginePythonGIL
         }
     }
 
-
-    std::unique_ptr<py::gil_scoped_acquire> GGilScopedAcquire;
+    std::unique_ptr<gil_scoped_acquire> GGilScopedAcquire;
 
     void AcquireGilOnCoroThread()
     {
@@ -57,7 +86,7 @@ namespace ImGuiTestEnginePythonGIL
         }
         assert(GGilScopedAcquire.get() == nullptr);
         LOG_GIL("AcquireGilOnCoroThread: start...\n");
-        GGilScopedAcquire = std::make_unique<py::gil_scoped_acquire>();
+        GGilScopedAcquire = std::make_unique<gil_scoped_acquire>();
         LOG_GIL("AcquireGilOnCoroThread: done...\n");
     }
 
