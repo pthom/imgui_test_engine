@@ -228,8 +228,9 @@ void    Str::set(const char* src)
         return;
     }
     int buf_len = (int)strlen(src);
-    if (Capacity < buf_len)
-        reserve_discard(buf_len);
+    int reserve_size = buf_len == 0 ? 2 : buf_len;
+    if (Capacity < reserve_size)
+        reserve_discard(reserve_size);
     memcpy(Data, src, (size_t)(buf_len + 1));
     Owned = 1;
 }
@@ -238,8 +239,9 @@ void    Str::set(const char* src, const char* src_end)
 {
     STR_ASSERT(src != NULL && src_end >= src);
     int buf_len = (int)(src_end - src);
-    if ((int)Capacity < buf_len)
-        reserve_discard(buf_len);
+    int reserve_size = buf_len == 0 ? 2 : buf_len;
+    if ((int)Capacity < reserve_size)
+        reserve_discard(reserve_size);
     memcpy(Data, src, (size_t)buf_len);
     Data[buf_len] = 0;
     Owned = 1;
@@ -248,8 +250,9 @@ void    Str::set(const char* src, const char* src_end)
 void    Str::set(const Str& src)
 {
     int buf_len = (int)strlen(src.c_str());
-    if ((int)Capacity < buf_len)
-        reserve_discard(buf_len);
+    int reserve_size = buf_len == 0 ? 2 : buf_len;
+    if ((int)Capacity < reserve_size)
+        reserve_discard(reserve_size);
     memcpy(Data, src.c_str(), (size_t)(buf_len + 1));
     Owned = 1;
 }
@@ -258,8 +261,9 @@ void    Str::set(const Str& src)
 void    Str::set(const std::string& src)
 {
     int buf_len = (int)src.length();
-    if ((int)Capacity < buf_len)
-        reserve_discard(buf_len);
+    int reserve_size = buf_len == 0 ? 2 : buf_len;
+    if ((int)Capacity < reserve_size)
+        reserve_discard(reserve_size);
     memcpy(Data, src.c_str(), (size_t)(buf_len + 1));
     Owned = 1;
 }
