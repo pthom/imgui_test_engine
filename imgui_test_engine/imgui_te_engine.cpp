@@ -1490,9 +1490,9 @@ void ImGuiTestEngine_UpdateTestsSourceLines(ImGuiTestEngine* engine)
     ImPool<ImVector<TestAndSourceLine>> db;
     for (ImGuiTest* test : engine->TestsAll)
     {
-        if (test->SourceFile == nullptr)
+        if (test->SourceFile.empty())
             continue;
-        ImGuiID srcfile_hash = ImHashStr(test->SourceFile);
+        ImGuiID srcfile_hash = ImHashStr(test->SourceFile.c_str());
         ImVector<TestAndSourceLine>* srcfile_tests = db.GetOrAddByKey(srcfile_hash);
         srcfile_tests->push_back({ test, test->SourceLine });
     }
@@ -2106,7 +2106,7 @@ void ImGuiTestEngine_CrashHandler()
 
     ImOsConsoleSetTextColor(ImOsConsoleStream_StandardError, ImOsConsoleTextColor_BrightRed);
     if (crashed_test != nullptr)
-        fprintf(stderr, "**ImGuiTestEngine_CrashHandler()** Crashed while running \"%s\" :(\n", crashed_test->Name);
+        fprintf(stderr, "**ImGuiTestEngine_CrashHandler()** Crashed while running \"%s\" :(\n", crashed_test->Name.c_str());
     else
         fprintf(stderr, "**ImGuiTestEngine_CrashHandler()** Crashed :(\n");
 
