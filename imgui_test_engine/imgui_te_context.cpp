@@ -3328,7 +3328,7 @@ size_t  ImGuiTestContext::ItemReadAsString(ImGuiTestRef ref, char* out_buf, size
     }
 
     IMGUI_TEST_CONTEXT_REGISTER_DEPTH(this);
-    LogDebug("ItemSelectAndReadString '%s' 0x%08X as string", ref.Path ? ref.Path : "nullptr", ref.ID);
+    LogDebug("ItemSelectAndReadString '%s' 0x%08X as string", !ref.Path.empty() ? ref.Path.c_str() : "nullptr", ref.ID);
     IM_CHECK_SILENT_RETV(out_buf != nullptr || out_buf_size == 0, false);
 
     Str256 backup_clipboard = ImGui::GetClipboardText();
