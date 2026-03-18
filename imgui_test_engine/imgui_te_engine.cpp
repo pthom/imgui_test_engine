@@ -137,7 +137,13 @@ ImGuiTestEngine::ImGuiTestEngine()
 
 ImGuiTestEngine::~ImGuiTestEngine()
 {
-    IM_ASSERT(TestQueueCoroutine == nullptr);
+    //  [Bundle]: IM_ASSERT throws, and cannot be used in a dtor
+    // IM_ASSERT(TestQueueCoroutine == nullptr);
+    if (TestQueueCoroutine != nullptr)  {
+        fprintf(stderr, "Error: TestQueueCoroutine is not null in ImGuiTestEngine destructor.\n");
+        exit(-1);
+    }
+
     IM_DELETE(PerfTool);
     IM_DELETE(UiFilterTests);
     IM_DELETE(UiFilterPerfs);
