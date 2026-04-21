@@ -826,6 +826,17 @@ void ImGuiTestContext::CaptureSetExtension(const char* ext)
     }
 }
 
+#ifdef IMGUI_BUNDLE_PYTHON_API
+// [ADAPT_IMGUI_BUNDLE]
+// Needed because CaptureArgs->InOutputFile is a fixed-size char buffer (not exposed by litgen).
+void ImGuiTestContext::CaptureSetFilename(const char* filename)
+{
+    if (CaptureArgs == nullptr)
+        return; // no capture in progress
+    ImStrncpy(CaptureArgs->InOutputFile, filename, IM_ARRAYSIZE(CaptureArgs->InOutputFile));
+}
+#endif
+
 bool ImGuiTestContext::CaptureBeginVideo()
 {
     if (IsError())
