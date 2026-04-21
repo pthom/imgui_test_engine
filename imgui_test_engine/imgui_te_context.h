@@ -345,6 +345,11 @@ struct IMGUI_API ImGuiTestContext
     // Screenshot/Video Captures
     void        CaptureReset();                                                     // Reset state (use when doing multiple captures)
     void        CaptureSetExtension(const char* ext);                               // Set capture file format (otherwise for video this default to EngineIO->VideoCaptureExtension)
+#ifdef IMGUI_BUNDLE_PYTHON_API
+    // [ADAPT_IMGUI_BUNDLE]
+    // Where to save the next CaptureScreenshot*/CaptureBeginVideo (length: 256 max!)
+    void        CaptureSetFilename(const char* filename);
+#endif
     bool        CaptureAddWindow(ImGuiTestRef ref);                                 // Add window to be captured (default to capture everything)
     void        CaptureScreenshotWindow(ImGuiTestRef ref, int capture_flags = 0);   // Trigger a screen capture of a single window (== CaptureAddWindow() + CaptureScreenshot())
     bool        CaptureScreenshot(int capture_flags = 0);                           // Trigger a screen capture
