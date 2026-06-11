@@ -486,6 +486,8 @@ struct IMGUI_API ImGuiTest
     // Functions
     ImGuiTest() {}
     ~ImGuiTest();
+    // [Bundle] Compatibility with upstream API: Name is owning here (Str30), no separate copy needed.
+    void SetOwnedName(const char* name) { Name = name; }
 
     template <typename T>
     void SetVarsDataType(void(*post_initialize)(ImGuiTestContext* ctx, T& vars) = nullptr)
