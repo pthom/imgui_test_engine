@@ -10,6 +10,8 @@ SOURCES = imgui_test_suite.cpp
 SOURCES += ../imgui_tests_core.cpp ../imgui_tests_docking.cpp ../imgui_tests_inputs.cpp ../imgui_tests_nav.cpp ../imgui_tests_perf.cpp ../imgui_tests_tables.cpp ../imgui_tests_viewports.cpp ../imgui_tests_widgets.cpp ../imgui_tests_widgets_inputtext.cpp
 SOURCES += ../imgui_te_context.cpp ../imgui_te_coroutine.cpp ../imgui_te_engine.cpp ../imgui_te_perftool.cpp ../imgui_te_ui.cpp ../imgui_te_utils.cpp ../imgui_capture_tool.cpp ../imgui_te_exporters.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
+# [Bundle] pthom/imgui fork: StackLayout implementation (empty with vanilla imgui)
+SOURCES += $(wildcard $(IMGUI_DIR)/imgui_stacklayout.cpp)
 SOURCES += ../shared/imgui_app.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)

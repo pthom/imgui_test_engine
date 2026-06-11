@@ -587,7 +587,7 @@ int main(int argc, char** argv)
         ImVector<ImGuiTestRunTask> tests;
         ImGuiTestEngine_GetTestQueue(engine, &tests);
         for (ImGuiTestRunTask& test_task : tests)
-            printf("Test: '%s' '%s'\n", test_task.Test->Category, test_task.Test->Name);
+            printf("Test: '%s' '%s'\n", test_task.Test->Category.c_str(), test_task.Test->Name.c_str()); // [Bundle] Category/Name are Str30
         return 0;
     }
 
