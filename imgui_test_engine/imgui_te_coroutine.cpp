@@ -58,16 +58,16 @@ static void CoroutineThreadMain(Coroutine_ImplStdThreadData* data, ImGuiTestCoro
     }
 
 #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
-    // If using python bindings, acquire the GIL on te coroutine thread
-    ImGuiTestEnginePythonGIL::AcquireGilOnCoroThread();
+    // If using python bindings, acquire the GIL on the coroutine thread (and create its Python thread state)
+    ImGuiTestEnginePythonGIL::AcquireGilOnCoroThread_ThreadStart();
 #endif
 
     // Run user code, which will then call Yield() when it wants to yield control
     func(ctx);
 
 #ifdef IMGUI_TEST_ENGINE_WITH_PYTHON_GIL
-    // If using python bindings, release the GIL on the coroutine thread
-    ImGuiTestEnginePythonGIL::ReleaseGilOnCoroThread();
+    // If using python bindings, release the GIL on the coroutine thread (and destroy its Python thread state)
+    ImGuiTestEnginePythonGIL::ReleaseGilOnCoroThread_ThreadEnd();
 #endif
 
     // Mark as terminated
